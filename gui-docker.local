@@ -1,0 +1,37 @@
+#! /bin/bash
+# Copyright (c) 2017-2018, NVIDIA CORPORATION. All rights reserved.
+
+NV_DOCKER=${NV_DOCKER:-"docker"}
+CUR_TIME=`date +%Y%m%d%H%M%S`
+DOCKER_ARGS=()
+NV_DOCKER_ARGS=()
+while [ $# -gt 0 ]; do
+    arg=$1
+    shift
+    DOCKER_ARGS+=("$arg")
+    case $arg in
+        run|create)
+            NV_DOCKER_ARGS+=("--net=host")
+			NV_DOCKER_ARGS+=("-eDISPLAY=$DISPLAY")
+			NV_DOCKER_ARGS+=("-eGDK_SCALE")
+			NV_DOCKER_ARGS+=("-v$HOME/.Xauthority:/root/.Xauthority")
+			NV_DOCKER_ARGS+=("--name=$USER-$CUR_TIME")
+			NV_DOCKER_ARGS+=("-v$HOME:/root/$USER")
+            break
+        ;;
+        version)
+            printf "GUI Docker: 2.0.3\n"
+            break
+        ;;
+        --)
+            break
+        ;;
+    esac
+done
+
+if [ ! -z $NV_DEBUG ]; then
+    set -x
+fi
+echo ${NV_DOCKER_ARGS[@]}
+echo $NV_DOCKER "${DOCKER_ARGS[@]}" "${NV_DOCKER_ARGS[@]}" "$@"
+exec $NV_DOCKER "${DOCKER_ARGS[@]}" "${NV_DOCKER_ARGS[@]}" "$@"
